@@ -121,7 +121,9 @@ class PrintCommand():
             for transaction in transactions:
                 # Check if the transaction contains any of the accounts
                 for account in self.__accounts:
-                    if account in transaction:
+                    # The account can be in the beginning, middle or end of the transaction
+                    account_regex = re.compile(r':?{}:?'.format(account))
+                    if re.search(account_regex, transaction):
                         new_transactions.append(transaction)
                         break
 
