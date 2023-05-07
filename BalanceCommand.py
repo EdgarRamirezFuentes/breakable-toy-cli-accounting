@@ -1,12 +1,10 @@
 import re
-from collections import OrderedDict
 from Command import Command
 
-class PrintCommand(Command):
-    def __init__(self, accounts, sort, file):
+class BalanceCommand(Command):
+    def __init__(self, accounts, file):
         super().__init__(file)
         self.__accounts = accounts
-        self.__sort = sort
 
     def execute(self):
         with open(f'ledger_files/{self.get_file()}', 'r') as f:
@@ -19,33 +17,16 @@ class PrintCommand(Command):
 
             transactions = self._clean_transactions(transactions)
             self._operations_to_dict(transactions)
+
+            # If accounts are provided, print only the transactions for those accounts
+            if self.__accounts:
+                self.__filter_accounts()
+
             self._fill_empty_currencies()
 
-
-            # If only sort is provided, print the transactions sorted by date
-            if not self.__accounts and self.__sort:
-                self.__sort_transactions_by_date()
-   
-            # If accounts are provided, print only the transactions for those accounts
-            elif self.__accounts and not self.__sort:
-                self.__filter_accounts()
-
-            # If sort and accounts is provided, print the transactions sorted by date
-            elif self.__accounts and self.__sort:
-                self.__filter_accounts()
-                self.__sort_transactions_by_date()
-                
             # If no arguments are provided, print all the transactions
+            #self.__get_balance()
             self._print_transactions()
-                    
-    def __sort_transactions_by_date(self):
-        """Sort the transactions by date in asc.
-        
-        Returns:
-            OrderedDict -- The ordered transactions.
-        """
-        # Sort the transactions by date (The key of the dictionary)
-        self._operations = OrderedDict(sorted(self._operations.items()))
 
     def __filter_accounts(self) -> None:
         """Filter the transactions by account."""
@@ -63,3 +44,12 @@ class PrintCommand(Command):
 
             # Replace the transactions with the filtered ones
             self._operations[operation] = new_transactions
+
+    def __get_balance(self) -> dict:
+        """Get the balance of the accounts.
+        """
+
+        for operation, transactions in self._operations.items():
+            for transaction in transactions:
+                print(transaction.strip().split('\t', 1))
+
