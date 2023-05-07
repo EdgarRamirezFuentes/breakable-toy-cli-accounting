@@ -24,10 +24,10 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     
-    if args.command == "print":
+    if args.command == "print" or args.command == "p":
         command = PrintCommand(args.account, args.sort, args.file)
         command.execute()
-    elif args.command == "balance":
+    elif args.command == "balance" or args.command == "bal" or args.command == "b":
         command = BalanceCommand(args.account, args.file)
         command.execute()
 
