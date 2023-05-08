@@ -20,12 +20,11 @@ class BalanceCommand(Command):
 
             transactions = self._clean_transactions(transactions)
             self._operations_to_dict(transactions)
+            self._fill_empty_currencies()
 
             # If accounts are provided, print only the transactions for those accounts
             if self.__accounts:
                 self.__filter_accounts()
-
-            self._fill_empty_currencies()
 
             # If no arguments are provided, print all the transactions
             self.__get_balance()
@@ -60,36 +59,77 @@ class BalanceCommand(Command):
                 amount = float(amount.replace(concurrency, '').strip())
                 accounts = account.split(':')
 
-                if not self.__accounts_balance.get(accounts[0]):
-                    self.__accounts_balance[accounts[0]] = {
-                        'balance' : defaultdict(float, {concurrency : amount}),
-                        'accounts' : [transaction.strip()]
+                if not self.__accounts_balance.get(accounts[0].strip()):
+                    self.__accounts_balance[accounts[0].strip()] = {
+                        'balance': defaultdict(float),
+                        'accounts': defaultdict(defaultdict)
                     }
-                else:
-                    self.__accounts_balance[accounts[0]]['balance'][concurrency] += amount
-                    self.__accounts_balance[accounts[0]]['accounts'].append(transaction.strip())
-                
+
+                current_account = self.__accounts_balance[accounts[0].strip()]
+                current_account['balance'][concurrency] += amount
+
+                if len(accounts) > 1:
+                    for subaccount in accounts[1:]:
+                        if not current_account['accounts'].get(subaccount.strip()):
+                            current_account['accounts'][subaccount.strip()] = {
+                                'balance': defaultdict(float),
+                                'accounts': defaultdict(defaultdict)
+                            }
+
+                        current_account['accounts'][subaccount.strip()]['balance'][concurrency] += amount
+                        current_account = current_account['accounts'][subaccount.strip()]
+
                 self.__total_balance[concurrency] += amount
 
-    def _print_transactions(self):
+    def _print_transactions(self) -> None:
         """Print the transactions.
         """
-        for account, balance in self.__accounts_balance.items():
-            print(account, end=':\t| ')
-            for currency, amount in balance['balance'].items():
+        for account, data in self.__accounts_balance.items():
+            print(account, end=' | ')
+            balance = data['balance']
+            for currency, amount in balance.items():
                 if currency == '$':
                     print(f'{currency}{amount:.2f}', end=' | ')
                 else:
                     print(f'{amount:.2f} {currency}', end=' | ')
-            print('\n')
-            for transaction in balance['accounts']:
-                print(f'\t\t{transaction}')
+            subaccounts = data['accounts']
+            
+            for subaccount, data in subaccounts.items():
+                self._print_subaccounts(subaccount, data, 1)
+            
             print()
-        
-        print('----------------------------------------------------------------')
-        print('Total balance:', end='\n\n')
+        print('-' * 100)
         for currency, amount in self.__total_balance.items():
             if currency == '$':
                 print(f'{currency}{amount:.2f}')
             else:
                 print(f'{amount:.2f} {currency}')
+
+    def _print_subaccounts(self, account, data, level=1):
+        """Print the accounts.
+        """
+
+        tabs = '\t' * level
+
+        print(f'\n{tabs}{account}', end=' | ')
+        balance = data['balance']
+        for currency, amount in balance.items():
+            if currency == '$':
+                print(f'{currency}{amount:.2f}', end=' | ')
+            else:
+                print(f'{amount:.2f} {currency}', end=' | ')
+
+        subaccounts = data['accounts']
+
+        for subaccount, data in subaccounts.items():
+            self._print_subaccounts(subaccount, data, level + 1)
+
+
+
+
+
+
+
+
+
+            

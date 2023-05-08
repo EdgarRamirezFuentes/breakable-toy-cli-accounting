@@ -3,7 +3,7 @@
 import argparse
 from PrintCommand import PrintCommand
 from BalanceCommand import BalanceCommand
-        
+from RegisterCommand import RegisterCommand
 
 
 if __name__ == "__main__":
@@ -11,15 +11,21 @@ if __name__ == "__main__":
     subparsers = parser.add_subparsers(dest="command")
 
     # Add the print command
-    print = subparsers.add_parser("print", help="Print the ledger.")
+    print = subparsers.add_parser("print", help="Print the ledger.", aliases=['p'])
     print.add_argument('-f', '--file', help='The ledger file to use.', default="index.ledger")
     print.add_argument('-a', '--account', help='The accounts to print.', nargs='+')
     print.add_argument('-s', '--sort', help='The accounts to print.')
 
     # Add the balance command
-    balance = subparsers.add_parser("balance", help="Print the balance.")
+    balance = subparsers.add_parser("balance", help="Print the balance.", aliases=['bal', 'b'])
     balance.add_argument('-f', '--file', help='The ledger file to use.', default="index.ledger")
     balance.add_argument('-a', '--account', help='The accounts to print.', nargs='+')
+
+    # Add the register commannd
+    register = subparsers.add_parser("register", help="Print the register.", aliases=['reg', 'r'])
+    register.add_argument('-f', '--file', help='The ledger file to use.', default="index.ledger")
+    register.add_argument('-a', '--account', help='The accounts to print.', nargs='+')
+    register.add_argument('-s', '--sort', help='The accounts to print.')
 
 
     args = parser.parse_args()
@@ -30,6 +36,11 @@ if __name__ == "__main__":
     elif args.command == "balance" or args.command == "bal" or args.command == "b":
         command = BalanceCommand(args.account, args.file)
         command.execute()
+    elif args.command == "register" or args.command == "reg" or args.command == "r":
+        command = RegisterCommand(args.account, args.sort, args.file)
+        command.execute()
+    else:
+        print("Command not found.")
 
 
 
