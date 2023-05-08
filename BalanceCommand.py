@@ -3,11 +3,12 @@ from Command import Command
 from collections import defaultdict
 
 class BalanceCommand(Command):
-    def __init__(self, accounts, file):
+    def __init__(self, accounts, file, full_balance=False):
         super().__init__(file)
         self.__accounts = accounts
         self.__accounts_balance = defaultdict(dict)
         self.__total_balance = defaultdict(float)
+        self.__full_balance = full_balance
 
     def execute(self):
         with open(f'ledger_files/{self.get_file()}', 'r') as f:
@@ -67,17 +68,18 @@ class BalanceCommand(Command):
 
                 current_account = self.__accounts_balance[accounts[0].strip()]
                 current_account['balance'][concurrency] += amount
+                
+                if self.__full_balance:
+                    if len(accounts) > 1:
+                        for subaccount in accounts[1:]:
+                            if not current_account['accounts'].get(subaccount.strip()):
+                                current_account['accounts'][subaccount.strip()] = {
+                                    'balance': defaultdict(float),
+                                    'accounts': defaultdict(defaultdict)
+                                }
 
-                if len(accounts) > 1:
-                    for subaccount in accounts[1:]:
-                        if not current_account['accounts'].get(subaccount.strip()):
-                            current_account['accounts'][subaccount.strip()] = {
-                                'balance': defaultdict(float),
-                                'accounts': defaultdict(defaultdict)
-                            }
-
-                        current_account['accounts'][subaccount.strip()]['balance'][concurrency] += amount
-                        current_account = current_account['accounts'][subaccount.strip()]
+                            current_account['accounts'][subaccount.strip()]['balance'][concurrency] += amount
+                            current_account = current_account['accounts'][subaccount.strip()]
 
                 self.__total_balance[concurrency] += amount
 
@@ -93,9 +95,9 @@ class BalanceCommand(Command):
                 else:
                     print(f'{amount:.2f} {currency}', end=' | ')
             subaccounts = data['accounts']
-            
-            for subaccount, data in subaccounts.items():
-                self._print_subaccounts(subaccount, data, 1)
+            if self.__full_balance:
+                for subaccount, data in subaccounts.items():
+                    self._print_subaccounts(subaccount, data, 1)
             
             print()
         print('-' * 100)
