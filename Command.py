@@ -1,15 +1,15 @@
-from collections import defaultdict
+from collections import defaultdict, OrderedDict
 import re
 import datetime
 
 class Command():
     """The base class for all the commands."""
 
-    def __init__(self, file) -> None:
+    def __init__(self, file:str) -> None:
         self._file = file
         self._operations = defaultdict(list)
 
-    def set_file(self, file) -> None:
+    def set_file(self, file:str) -> None:
         """Set the file.
 
         Args:
@@ -17,7 +17,7 @@ class Command():
         """
         self._file = file
 
-    def set_operations(self, operations) -> None:
+    def set_operations(self, operations:dict) -> None:
         """Set the operations.
 
         Args:
@@ -41,7 +41,7 @@ class Command():
         """
         return self._operations
 
-    def _find_included_files(self, lines) -> list:
+    def _find_included_files(self, lines:str) -> list:
         """Find the files to include.
         
         Args:
@@ -54,7 +54,7 @@ class Command():
         include_match = include_regex.findall(lines)
         return [file for file in include_match]
     
-    def _get_included_transactions(self, files) -> str:
+    def _get_included_transactions(self, files:list) -> str:
         """Get the transactions from the included files.
         
         Args:
@@ -75,7 +75,7 @@ class Command():
             print('An included file was not found.')
             raise SystemExit
         
-    def _clean_transactions(self, transactions):
+    def _clean_transactions(self, transactions:str) -> str:
         """Remove comments from the transactions.
         
         Args:
@@ -87,7 +87,7 @@ class Command():
         comment_regex = re.compile(r';.*')
         return comment_regex.sub('', transactions)
         
-    def _operations_to_dict(self, transactions) -> dict:
+    def _operations_to_dict(self, transactions:str) -> dict:
         """Convert the transactions to a dictionary.
         
         Args:
@@ -115,7 +115,7 @@ class Command():
                 # Add the transaction to the operation it belongs
                 self._operations[current_operation].append(line)
 
-    def _print_transactions(self):
+    def _print_transactions(self) -> None:
         """Print the transactions.
         """
         for operation, transactions in self._operations.items():
@@ -123,6 +123,8 @@ class Command():
                 print(operation)
                 for transaction in transactions:
                     account, value = transaction.strip().split('\t', 1)
+
+                    # Truncate the account name if it is too long
                     account = account.strip()[:12] + '...' \
                         if len(account.strip()) > 12 else \
                         account.strip() + ' ' * (15 - len(account.strip()))
@@ -131,10 +133,10 @@ class Command():
                     print(f'\t{account:>12}{value.strip():>50}')
                     print('\033[0m', end='')
                     
-    def _fill_empty_currencies(self):
+    def _fill_empty_currencies(self) -> None:
         """Fill the empty currencies in the transactions.
         """
-        for operation, transactions in self._operations.items():
+        for transactions in self._operations.values():
             previous_concurrency = ''
             for i, transaction in enumerate(transactions):
                 transaction_components = transaction.lstrip().split('\t', 1)
@@ -157,7 +159,37 @@ class Command():
                 else:
                     previous_concurrency = transaction_components[1]
 
-    def _set_price_color(self, amount, currency):
+    def _sort_transactions_by_date(self) -> None:
+        """Sort the transactions by date in asc.
+        
+        Returns:
+            OrderedDict -- The ordered transactions.
+        """
+        # Sort the transactions by date (The key of the dictionary)
+        self._operations = OrderedDict(sorted(self._operations.items()))
+
+    def _filter_accounts(self, accounts:list) -> None:
+        """Filter the transactions by account.
+        
+        Args:
+            accounts {list} -- The list of accounts to filter.
+        """
+        for operation, transactions in self._operations.items():
+            new_transactions = []
+
+            for transaction in transactions:
+                # Check if the transaction contains any of the accounts
+                for account in accounts:
+                    # The account can be in the beginning, middle or end of the transaction
+                    account_regex = re.compile(r':?{}:?'.format(account))
+                    if re.search(account_regex, transaction):
+                        new_transactions.append(transaction)
+                        break
+
+            # Replace the transactions with the filtered ones
+            self._operations[operation] = new_transactions
+
+    def _set_price_color(self, amount:float, currency:str) -> str:
         """Set the color of the price.
         
         Args:
