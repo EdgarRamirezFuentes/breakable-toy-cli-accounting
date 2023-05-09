@@ -87,39 +87,39 @@ class BalanceCommand(Command):
         """Print the transactions.
         """
         for account, data in self.__accounts_balance.items():
-            print(account, end=' | ')
+            account = account.strip()[:12] + '...' \
+                        if len(account.strip()) > 12 else \
+                        account.strip() + '-' * (15 - len(account.strip()))
+            
+            account = '\033[34m' + account + '\033[0m'
+            print(account, end=' ')
             balance = data['balance']
             for currency, amount in balance.items():
-                if currency == '$':
-                    print(f'{currency}{amount:.2f}', end=' | ')
-                else:
-                    print(f'{amount:.2f} {currency}', end=' | ')
+                print(self._set_price_color(amount, currency), end=' ')
             subaccounts = data['accounts']
             if self.__full_balance:
                 for subaccount, data in subaccounts.items():
-                    self._print_subaccounts(subaccount, data, 1)
-            
+                    self._print_subaccounts(subaccount, data, 1) 
+                print()        
             print()
-        print('-' * 100)
+        print('-' * 60)
         for currency, amount in self.__total_balance.items():
-            if currency == '$':
-                print(f'{currency}{amount:.2f}')
-            else:
-                print(f'{amount:.2f} {currency}')
+            print(self._set_price_color(amount, currency))
 
     def _print_subaccounts(self, account, data, level=1):
         """Print the accounts.
         """
-
         tabs = '\t' * level
+        account = account.strip()[:12] + '...' \
+                    if len(account.strip()) > 12 else \
+                    account.strip() + '-' * (15 - len(account.strip()))
+        # Yellow color
+        account = '\033[33m' + account + '\033[0m'
+        print(f'\n{tabs}{account}', end=' ')
 
-        print(f'\n{tabs}{account}', end=' | ')
         balance = data['balance']
         for currency, amount in balance.items():
-            if currency == '$':
-                print(f'{currency}{amount:.2f}', end=' | ')
-            else:
-                print(f'{amount:.2f} {currency}', end=' | ')
+            print(self._set_price_color(amount, currency), end=' ')
 
         subaccounts = data['accounts']
 

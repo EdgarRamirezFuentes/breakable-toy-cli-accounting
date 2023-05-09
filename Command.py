@@ -122,12 +122,18 @@ class Command():
             if transactions:
                 print(operation)
                 for transaction in transactions:
-                    print(transaction)
-
+                    account, value = transaction.strip().split('\t', 1)
+                    account = account.strip()[:12] + '...' \
+                        if len(account.strip()) > 12 else \
+                        account.strip() + ' ' * (15 - len(account.strip()))
+                    
+                    account = '\033[34m' + account + '\033[31m' if value.strip().startswith('-') else '\033[34m' + account + '\033[32m'
+                    print(f'\t{account:>12}{value.strip():>50}')
+                    print('\033[0m', end='')
+                    
     def _fill_empty_currencies(self):
         """Fill the empty currencies in the transactions.
         """
-
         for operation, transactions in self._operations.items():
             previous_concurrency = ''
             for i, transaction in enumerate(transactions):
@@ -151,5 +157,23 @@ class Command():
                 else:
                     previous_concurrency = transaction_components[1]
 
-
-    
+    def _set_price_color(self, amount, currency):
+        """Set the color of the price.
+        
+        Args:
+            amount {float} -- The amount.
+            currency {str} -- The currency.
+            
+        Returns:
+            str -- The colored price.
+        """
+        if currency == '$':
+            if amount < 0:
+                return f'\033[31m{currency}{amount:.2f}\033[0m'
+            else:
+                return f'\033[32m{currency}{amount:.2f}\033[0m'
+        else:
+            if amount < 0:
+                return f'\033[31m{amount:.2f} {currency}\033[0m'
+            else:
+                return f'\033[32m{amount:.2f} {currency}\033[0m'
