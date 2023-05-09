@@ -23,7 +23,7 @@ Ledger is a command-line accounting tool that provides double-entry accounting b
 
 ## Usage
 
-You are about to see how to use this ledger cli implementation, which of course has technical debt and it must be refactored, but it was done with love, tears, and passion.
+You are about to see how to use this ledger cli implementation works, which of course has technical debt and it must be refactored, but it was done with love, tears, and passion.
 
 ![it aint much](./assets/it_aint.jpeg)
 
