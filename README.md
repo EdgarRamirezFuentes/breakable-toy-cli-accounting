@@ -75,7 +75,7 @@ Show the balance of all the root accounts or the root accounts related to certai
     - Get only one parameter
 - -a, --account: Specifies the account(s) that will be filtered in the balance report.
     - Get different accounts separated by space.
-- --full: Shows a the balannce of the root accounts and its subaccounts.
+- --full: Shows the balance of the root accounts and its subaccounts.
 
 #### Try it like this
 ```sh
@@ -110,7 +110,7 @@ Print all the transactions of a ledger file in a with a readable format.
 - -s, --sort: Specifies the parameter in which the transactions will be sorted.
     - d: Sort the transactions by date.
 
-#### Try this like this
+#### Try it like this
 ```sh
 sh ./my-ledger <command> [flags] # Must do it this way
 
